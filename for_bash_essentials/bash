@@ -1,0 +1,23 @@
+label=$1
+num_reps=$2
+query=$3
+db_file=$4
+csv_file=$5
+
+# Get current time and store it
+start=$(date +%s)
+
+# Loop num_reps times
+for i in $(seq $num_reps); do
+    # Run duckdb query
+    duckdb $db_file -c "$query" 
+done
+
+# Get current time
+end=$(date +%s)
+
+# Compute elapse time and divide by num of reps
+elapsed = $(echo "scale = 7; ($end - $start); 10/3" |bc) 
+
+# Write outpt as CSV
+echo "$label,$elapsed" >> "$csv_file" 

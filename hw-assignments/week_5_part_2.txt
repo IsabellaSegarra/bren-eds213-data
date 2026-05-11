@@ -1,0 +1,29 @@
+1. The `ls` function returns a list of the contents of that subdirectory. 
+The same applies to `ls .` which also returns a list of the contents of the subdirector. 
+The third command returns that same as the first and second, but it is instead printing 
+based on the relative file path. 
+
+2. The cat line prints file contents, the *.csv is w aildcard that matches
+all csv files. The `wc -l` command is counting the number of lines in files. 
+By doing | you are able to see the output of these two phrases together: print
+the file contents and count the files. This is why it returns no file names, 
+it only prints the number of lines for all csv files. 
+
+3. This returns the count of lines for the `a.csv` file, not all the csv files. 
+That is returned by the previous command. 
+
+4. In order to print Moe_Howard, you must wrape the name in curly brackets.
+For example: "${name}_Howard".
+
+5. When you create a bash script, the values of $1 refer to the first CSV filename. 
+$# refers to the total number of CSV files. 
+
+6. In order to access the date string, you can access it with $1. 
+$3 will return the third word in the date string or the month. 
+
+7. When doing this operation, the file gets wiped. In order to do this operation
+you can sort into a temp file, then use the mv command to rename the temp file 
+to the original file. 
+
+8. This action will delete everything in the directory and delete a file named
+.csv which most likely doesn't exist or has already been deleted. 
