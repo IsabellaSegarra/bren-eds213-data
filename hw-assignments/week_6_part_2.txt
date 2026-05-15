@@ -1,0 +1,53 @@
+
+Claude output:
+```{sql}
+SELECT Personnel.Name
+FROM Bird_nests
+JOIN Personnel ON Bird_nests.Observer = Personnel.Abbreviation
+WHERE Bird_nests.Site = 'nome'
+  AND Bird_nests.Year BETWEEN 1998 AND 2008
+  AND Bird_nests.ageMethod = 'float'
+GROUP BY Personnel.Name
+HAVING COUNT(*) = 36;
+```
+
+The above Claude output is a correct way to query the database for the desired output,
+however it is not taking into account how names must be unique. Grouping by Personnel Name is where this
+query would fail. Since Name is no longer unique, it can potentially merge nest counts 
+and return the wrong person. 
+
+ChatGBT output:
+```{sql}
+SELECT DISTINCT p.Name
+FROM Bird_nests bn
+JOIN Site s
+    ON bn.Site = s.Code
+JOIN Personnel p
+    ON bn.Observer = p.Abbreviation
+WHERE LOWER(s.Site_name) = 'nome'
+  AND bn.Year BETWEEN 1998 AND 2008
+  AND bn.ageMethod = 'float'
+GROUP BY p.Name
+HAVING COUNT(*) = 36;
+```
+
+This ChatGBT prompt is interesting because the LLM decided to make two joins when
+one was only necessary. Similar to the Claude output, this query will fail when grouping by name which
+will also merge nest counts even though you apply DISTINCT. 
+
+Google AI
+```{sql}
+SELECT p.Name
+FROM Bird_nests bn
+JOIN Site s ON bn.Site = s.Code
+JOIN Personnel p ON bn.Observer = p.Abbreviation
+WHERE LOWER(s.Site_name) = 'nome'
+  AND bn.Year BETWEEN 1998 AND 2008
+  AND bn.ageMethod = 'float'
+GROUP BY p.Abbreviation, p.Name
+HAVING COUNT(*) = 36;
+```
+
+This prompt from Google AI will produce the correct output because it also groups by Abbreviation. This 
+query understands that Name is not unique, but we want the person's name and uses abbreviation as the 
+unique foreign key to bypass the non-uniquess of Name. 
