@@ -1,0 +1,70 @@
+# Who were the winners?
+```{r}
+# Load libraries 
+library(dbplyr)
+library(tidyverse)
+library(DBI)
+library(duckdb)
+```
+
+## DB Connection and Load Tables
+```{r}
+# Establish db connection 
+conn <- DBI::dbConnect(duckdb::duckdb(),
+                       dbdir = "database/database.duckdb")
+# View tables
+DBI::dbListTables(conn)
+
+# Load relevant tables for analyses
+personnel_db <- tbl(conn, "Personnel") # For observer name
+bird_nests_db <- tbl(conn, "Bird_eggs") # For Egg_num, use Nest_ID
+bird_nests_db <- tbl(conn, "Bird_nests") # For Nest_ID and Observer link 
+```
+
+## SQL Query 
+```{sql}
+SELECT Personnel.Name, COUNT(*) AS total_eggs
+FROM Bird_nests
+JOIN Bird_eggs ON Bird_nests.Nest_ID = Bird_eggs.Nest_ID
+JOIN Personnel ON Bird_nests.Observer = Personnel.Abbreviation
+GROUP BY Personnel.Name
+ORDER BY egg_count DESC
+LIMIT 3;
+```
+
+## R: Collect()
+```{r}
+# R translation of SQL query 
+result <- bird_nests_db %>%
+  inner_join(bird_eggs_db, by = "Nest_ID") %>%
+  inner_join(personnel_db, by = c("Observer" = "Abbreviation")) %>%
+  group_by(Name) %>%
+  summarize(total_eggs = n()) %>%
+  arrange(desc(total_eggs)) %>%
+  head(3) %>%
+  collect()
+
+# View 
+View(result)
+```
+
+## R: Show_query()
+```{r}
+bird_nests_db %>%
+  inner_join(bird_eggs_db, by = "Nest_ID") %>%
+  inner_join(personnel_db, by = c("Observer" = "Abbreviation")) %>%
+  group_by(Name) %>%
+  summarize(total_eggs = n()) %>%
+  arrange(desc(total_eggs)) %>%
+  head(3) %>% 
+  show_query()
+```
+
+## Questions
+1. I created a seperate table `result` in order to store the query. This result was able to be seen by using the view() function. `dbplyr` only materializes the query into the R environment using the `collect()` function. 
+2. Yes, for both instances you need to limit to the first 3 rows after arranging in descneding order. This is done with `head(3)` in R and `LIMIT 3` in SQL. 
+
+### Close connection
+```{r}
+DBI::dbDisconnect(conn, shutdown = TRUE)
+```
